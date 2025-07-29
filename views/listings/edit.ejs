@@ -1,0 +1,102 @@
+<% layout('layouts/boilerplate') -%>
+
+<div class="row">
+
+  <form method="POST" action="/listings/<%= edl._id %>?_method=PUT" 
+        enctype="multipart/form-data" 
+        novalidate class="needs-validation">
+
+    <!-- Title -->
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input type="text" class="form-control" name="listing[title]" value="<%= edl.title %>" required>
+      <div class="invalid-feedback">Please enter title</div>
+    </div>
+
+    <!-- Description -->
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea rows="6" class="form-control" name="listing[description]" required><%= edl.description %></textarea>
+      <div class="invalid-feedback">Please enter a valid description</div>
+    </div>
+
+    <!-- Price -->
+    <div class="mb-3">
+      <label for="price" class="form-label">Price</label>
+      <input type="text" class="form-control" name="listing[price]" value="<%= edl.price %>" required>
+      <div class="invalid-feedback">Enter valid price</div>
+    </div>
+
+    <!-- Country -->
+    <div class="mb-3">
+      <label for="country" class="form-label">Country</label>
+      <input type="text" name="listing[country]" class="form-control" value="<%= edl.country %>" required>
+      <div class="invalid-feedback">Enter valid country</div>
+    </div>
+
+    <!-- Upload Image -->
+    <div class="mb-3">
+      <label for="image" class="form-label">Upload New Image</label>
+      <input type="file" name="image" class="form-control">
+    </div>
+
+    <!-- Location -->
+    <div class="mb-3">
+      <label for="location" class="form-label">Location Name</label>
+      <input type="text" name="listing[location]" class="form-control" value="<%= edl.location %>" required>
+      <div class="invalid-feedback">Enter valid location</div>
+    </div>
+
+    <!-- Map -->
+    <div class="mb-3">
+      <label for="map" class="form-label">Pick Location on Map</label>
+      <div id="map" style="height: 400px;"></div>
+    </div>
+
+    <!-- Hidden Coordinates -->
+    <input type="hidden" name="listing[geometry][coordinates][0]" id="lng">
+    <input type="hidden" name="listing[geometry][coordinates][1]" id="lat">
+
+    <!-- Submit -->
+    <div>
+      <button class="btn btn-dark">Submit</button>
+    </div>
+
+  </form>
+</div>
+
+<!-- Leaflet JS (make sure this is loaded either in boilerplate or here) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+ const defaultLat = <%= JSON.stringify(edl.geometry?.coordinates?.[1] || 19.0760) %>;  // fallback to Mumbai lat
+const defaultLng = <%= JSON.stringify(edl.geometry?.coordinates?.[0] || 72.8777) %>;  // fallback to Mumbai lng
+
+
+  const map = L.map('map').setView([defaultLat, defaultLng], 13);
+
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
+
+  let marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+
+  function updateCoords(lat, lng) {
+    document.getElementById('lat').value = lat;
+    document.getElementById('lng').value = lng;
+  }
+
+  // Set initial values
+  updateCoords(defaultLat, defaultLng);
+
+  marker.on('dragend', function (e) {
+    const position = marker.getLatLng();
+    updateCoords(position.lat, position.lng);
+  });
+
+  map.on('click', function (e) {
+    const { lat, lng } = e.latlng;
+    marker.setLatLng([lat, lng]);
+    updateCoords(lat, lng);
+  });
+</script>
